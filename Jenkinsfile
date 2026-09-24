@@ -24,9 +24,10 @@ pipeline {
                     def packageJson = readJSON file: 'package.json'
                     def appName    = packageJson.name
                     def appVersion = packageJson.version
-
                     echo "Application: ${env.APP_NAME}"
                     echo "Version: ${env.APP_VERSION}"
+                    env.APP_NAME    = appName
+                    env.APP_VERSION = appVersion
                 }
             }
         }
