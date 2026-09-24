@@ -1,5 +1,3 @@
-import groovy.json.JsonSlurperClassic
-
 pipeline {
     agent {
         node {
@@ -12,13 +10,17 @@ pipeline {
         component = "catalogue"
         region    = "us-east-1"
     }
+
+    options {
+        disableConcurrentBuilds()
+        timeout(time: 15, unit: 'MINUTES')
+    }
+
     stages {
         stage('Read Version') {
             steps {
                 script {
-                    def packageJsonText = readFile 'package.json'
-                    def packageJson     = new JsonSlurperClassic().parseText(packageJsonText)
-
+                    def packageJson = readJSON file: 'package.json'
                     def appName    = packageJson.name
                     def appVersion = packageJson.version
 
@@ -30,25 +32,28 @@ pipeline {
                 }
             }
         }
+
         stage('Install Dependencies') {
             steps {
-                sh 'npm install'
-            }
+                script {
+                    sh """
+                        npm install
+                    """
+                }
         }
-        stage('Build') {
-            steps {
-                echo 'Building application...'
-            }
+       
+    post {
+        always {
+            echo "it will run always"
+            // Optional: prune untagged/dangling images to save disk space on the agent
+            //  docker push ${acc_id}.dkr.ecr.us-east-1.amazonaws.com/${project}/${component}:${appVersion}
+            sh 'docker image prune -f'
         }
-        stage('Test') {
-            steps {
-                echo 'Running unit tests...'
-            }
+        success {
+            echo "I will run only success"
         }
-        stage('Deploy') {
-            steps {
-                echo 'Deploying artifact...'
-            }
+        failure {
+            echo "I will run if build failed"
         }
     }
 }
