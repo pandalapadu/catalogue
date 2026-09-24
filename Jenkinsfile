@@ -102,6 +102,28 @@ pipeline {
                 """
             }
         }
+        stage('Trivy Scan') {
+            steps {
+                script {
+                    echo "Running Trivy Dockerfile misconfiguration scan..."
+                    sh "trivy config --exit-code 0 --severity HIGH,CRITICAL --format table ./Dockerfile"
+
+                    echo "Running Trivy container image vulnerability scan..."
+                    def imageScan = sh(
+                        script: "trivy image --scanners vuln --pkg-types os --exit-code 1 --severity HIGH,CRITICAL --ignore-unfixed --format table ${env.APP_NAME}:${env.APP_VERSION}",
+                        returnStatus: true
+                    )
+
+                    // Flag the build as UNSTABLE (yellow) if vulnerabilities are found, but continue pipeline execution
+                    if (imageScan != 0) {
+                        echo "⚠️ Trivy detected HIGH/CRITICAL CVEs in base image. Marking build UNSTABLE."
+                        currentBuild.result = 'UNSTABLE'
+                    } else {
+                        echo "✅ No unpatched HIGH/CRITICAL OS vulnerabilities found."
+                    }
+                }
+            }
+        }
         stage('ECR Image push') {
             steps {
                 script {
