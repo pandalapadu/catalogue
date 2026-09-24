@@ -19,11 +19,14 @@ pipeline {
                     def packageJsonText = readFile 'package.json'
                     def packageJson     = new JsonSlurperClassic().parseText(packageJsonText)
 
-                    env.APP_NAME    = packageJson.name
-                    env.APP_VERSION = packageJson.version
+                    def appName    = packageJson.name
+                    def appVersion = packageJson.version
 
-                    echo "Application: ${env.APP_NAME}"
-                    echo "Version: ${env.APP_VERSION}"
+                    echo "Application: ${appName}"
+                    echo "Version: ${appVersion}"
+
+                    env.APP_NAME    = appName
+                    env.APP_VERSION = appVersion
                 }
             }
         }
@@ -34,7 +37,7 @@ pipeline {
         }
         stage('Build') {
             steps {
-                echo "Building application: ${env.APP_NAME}..."
+                echo 'Building application...'
             }
         }
         stage('Test') {
@@ -44,7 +47,7 @@ pipeline {
         }
         stage('Deploy') {
             steps {
-                echo "Deploying ${env.APP_NAME} to ${env.region}..."
+                echo 'Deploying artifact...'
             }
         }
     }
