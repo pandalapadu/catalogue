@@ -21,9 +21,9 @@ pipeline {
         stage('Read Version') {
             steps {
                 script {
-                    // Uses Node.js CLI to parse package.json (avoids missing plugin & sandbox approval errors)
-                    env.APP_NAME    = sh(script: "node -p \"require('./package.json').name\"", returnStdout: true).trim()
-                    env.APP_VERSION = sh(script: "node -p \"require('./package.json').version\"", returnStdout: true).trim()
+                    def packageJson = readJSON file: 'package.json'
+                    def appName    = packageJson.name
+                    def appVersion = packageJson.version
 
                     echo "Application: ${env.APP_NAME}"
                     echo "Version: ${env.APP_VERSION}"
