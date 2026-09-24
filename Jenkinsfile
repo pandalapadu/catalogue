@@ -1,3 +1,5 @@
+import groovy.json.JsonSlurperClassic
+
 pipeline {
     agent {
         node {
@@ -14,29 +16,25 @@ pipeline {
         stage('Read Version') {
             steps {
                 script {
-                    def packageJson = readJSON file: 'package.json'
+                    def packageJsonText = readFile 'package.json'
+                    def packageJson     = new JsonSlurperClassic().parseText(packageJsonText)
 
-                    def appName    = packageJson.name
-                    def appVersion = packageJson.version
+                    env.APP_NAME    = packageJson.name
+                    env.APP_VERSION = packageJson.version
 
-                    echo "Application: ${appName}"
-                    echo "Version: ${appVersion}"
-
-                    env.APP_NAME    = appName
-                    env.APP_VERSION = appVersion
+                    echo "Application: ${env.APP_NAME}"
+                    echo "Version: ${env.APP_VERSION}"
                 }
             }
         }
         stage('Install Dependencies') {
             steps {
-                 
-                    sh 'npm install'
-                }
+                sh 'npm install'
             }
         }
         stage('Build') {
             steps {
-                echo 'Building application...'
+                echo "Building application: ${env.APP_NAME}..."
             }
         }
         stage('Test') {
@@ -46,7 +44,7 @@ pipeline {
         }
         stage('Deploy') {
             steps {
-                echo 'Deploying artifact...'
+                echo "Deploying ${env.APP_NAME} to ${env.region}..."
             }
         }
     }
