@@ -76,7 +76,8 @@ pipeline {
                         fi
 
                         echo "---- Open Dependabot Alerts ----"
-                        jq -r '.[] | "\(.number)\t\(.security_vulnerability.severity)\t\(.dependency.package.name)\t\(.security_advisory.ghsa_id)"' alerts.json
+                        # Clean tab-separated output using jq @tsv (no backslash escape issues)
+                        jq -r '.[] | [.number, .security_vulnerability.severity, .dependency.package.name, .security_advisory.ghsa_id] | @tsv' alerts.json
 
                         # Count High and Critical alerts
                         HIGH_CRITICAL_COUNT=$(jq '[.[] | select(.security_vulnerability.severity == "high" or .security_vulnerability.severity == "critical")] | length' alerts.json)
