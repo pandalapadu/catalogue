@@ -45,6 +45,55 @@ pipeline {
                 """
             }
         }
+        stage('Check Dependabot Alerts') {
+            steps {
+                withCredentials([string(credentialsId: 'github-token', variable: 'GH_TOKEN')]) {
+                    sh '''
+                        set -e
+
+                        REPO="pandalapadu/catalogue"
+
+                        echo "Querying Dependabot alerts for ${REPO}..."
+
+                        HTTP_STATUS=$(curl -s -L -o alerts.json -w "%{http_code}" \
+                            -H "Accept: application/vnd.github+json" \
+                            -H "Authorization: Bearer ${GH_TOKEN}" \
+                            -H "X-GitHub-Api-Version: 2022-11-28" \
+                            "https://api.github.com/repos/${REPO}/dependabot/alerts?state=open")
+
+                        if [ "$HTTP_STATUS" -ne 200 ]; then
+                            echo "❌ GitHub API returned HTTP $HTTP_STATUS:"
+                            cat alerts.json
+                            exit 1
+                        fi
+
+                        # Check if any alerts exist
+                        TOTAL_ALERTS=$(jq 'if type=="array" then length else 0 end' alerts.json)
+
+                        if [ "$TOTAL_ALERTS" -eq 0 ]; then
+                            echo "✅ No open Dependabot alerts found."
+                            exit 0
+                        fi
+
+                        echo "---- Open Dependabot Alerts ----"
+                        jq -r '.[] | "\(.number)\t\(.security_vulnerability.severity)\t\(.dependency.package.name)\t\(.security_advisory.ghsa_id)"' alerts.json
+
+                        # Count High and Critical alerts
+                        HIGH_CRITICAL_COUNT=$(jq '[.[] | select(.security_vulnerability.severity == "high" or .security_vulnerability.severity == "critical")] | length' alerts.json)
+
+                        echo "--------------------------------"
+                        echo "High/Critical alert count: ${HIGH_CRITICAL_COUNT}"
+
+                        if [ "$HIGH_CRITICAL_COUNT" -gt 0 ]; then
+                            echo "❌ Found ${HIGH_CRITICAL_COUNT} High/Critical dependency alert(s). Failing build."
+                            exit 1
+                        else
+                            echo "✅ No High or Critical dependency alerts found. Passing build."
+                        fi
+                    '''
+                }
+            }
+        }
         stage('Docker Build') {
             steps {
                 sh """
