@@ -38,6 +38,13 @@ pipeline {
                 """
             }
         }
+        stage('Unit test') {
+            steps {
+                sh """
+                    npm test
+                """
+            }
+        }
         stage('Docker Build') {
             steps {
                 sh """
