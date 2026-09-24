@@ -11,7 +11,6 @@ pipeline {
         region    = "us-east-1"
     }
     stages {
-        stages {
         stage('Read Version') {
             steps {
                 script {
