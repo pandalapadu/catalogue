@@ -1,15 +1,47 @@
-@Library('roboshop-shared-library') _
+pipeline {
+    agent {
+        node {
+            label 'ROBOSHOP'
+        }
+    }
+    environment {
+        acc_id    = "453388807064"
+        project   = "roboshop"
+        component = "catalogue"
+        region    = "us-east-1"
+    }
+    stages {
+        stages {
+        stage('Read Version') {
+            steps {
+                script {
+                    def packageJson = readJSON file: 'package.json'
 
-def configMap = [
-    component : 'catalogue',
-    project   : 'roboshop',
-    port      : 8080,
-    isActive  : true
-]
+                    def appName    = packageJson.name
+                    def appVersion = packageJson.version
 
-// Check if current branch is 'main' (ignoring case)
-if (env.BRANCH_NAME?.equalsIgnoreCase('main')) {
-    echo "we will build it later"
-} else {
-    nodejsEKSpipeline(configMap)
+                    echo "Application: ${appName}"
+                    echo "Version: ${appVersion}"
+
+                    env.APP_NAME    = appName
+                    env.APP_VERSION = appVersion
+                }
+            }
+        }
+        stage('Build') {
+            steps {
+                echo 'Building application...'
+            }
+        }
+        stage('Test') {
+            steps {
+                echo 'Running unit tests...'
+            }
+        }
+        stage('Deploy') {
+            steps {
+                echo 'Deploying artifact...'
+            }
+        }
+    }
 }
