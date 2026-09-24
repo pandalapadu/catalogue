@@ -56,4 +56,6 @@ pipeline {
             echo "I will run if build failed"
         }
     }
+        }
+}
 }
