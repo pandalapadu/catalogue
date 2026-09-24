@@ -31,7 +31,6 @@ pipeline {
                 }
             }
         }
-
         stage('Install Dependencies') {
             steps {
                 sh """
@@ -39,6 +38,15 @@ pipeline {
                 """
             }
         }
+        stage('Docker Build') {
+            steps {
+                sh """
+                docker build -t ${env.APP_NAME}:${env.APP_VERSION} .
+                """
+            }
+        }
+        
+        
     }
 
     post {
