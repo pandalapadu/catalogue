@@ -51,15 +51,11 @@ pipeline {
                     withAWS(credentials: 'aws-credentials', region: "${env.region}") {
                         def ecrRegistry = "${env.acc_id}.dkr.ecr.${env.region}.amazonaws.com"
                         def ecrRepo     = "${ecrRegistry}/${env.project}/${env.component}"
-
                         sh """
                             # 1. Login to Amazon ECR
                             aws ecr get-login-password --region ${env.region} | docker login --username AWS --password-stdin ${ecrRegistry}
-
                             # 2. Tag image with version and latest
-                            docker tag ${env.APP_NAME}:${env.APP_VERSION} ${ecrRepo}:${env.APP_VERSION}
-                           
-                            
+                            docker tag ${env.APP_NAME}:${env.APP_VERSION} ${ecrRepo}:${env.APP_VERSION}                            
                             # 3. Push to ECR
                             docker push ${ecrRepo}:${env.APP_VERSION}
                             
