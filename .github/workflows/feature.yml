@@ -1,19 +1,27 @@
 name: feature work flow 
+
 on:
   push:
-    # branches-ignore:
-    #   - main # this will ignore this branch updated
+    # Captures pushes to all branches so your conditional blocks can filter them out
+    branches: [ "**" ]
+
 jobs:
   feature-workflow:
-    if: github.ref_name != 'refs/heads/main' # this will run only on main branch
-    runs-on: ubuntu-latest
+    # FIXED: github.ref_name returns just 'main'. This condition correctly ensures 
+    # the job ONLY runs if the commit is pushed to a feature branch (NOT main).
+    if: github.ref_name != 'main'
+    
+    # FIXED: Removed the invalid 'runs-on: ubuntu-latest' key. 
+    # Reusable workflows inherit their runner settings directly from the target template file.
     uses: pandalapadu/workflows/.github/workflows/nodejsEKSfeature.yaml@main
     with:
       project: 'roboshop'
       component: 'catalogue'   
 
   main-workflow:
+    # FIXED: This job evaluates correctly and executes only when the target is the 'main' branch.
+    if: github.ref_name == 'main'
     runs-on: ubuntu-latest
     steps:
-      - name: main workflow 
+      - name: main workflow execution status
         run: echo "this will run when Main branch is triggered"
