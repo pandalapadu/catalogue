@@ -2,13 +2,12 @@ name: feature work flow
 
 on:
   push:
-    # Captures pushes to all branches so your conditional blocks can filter them out
-    branches: [ "**" ]
+  workflow_dispatch:
 
 jobs:
   feature-workflow:
     # FIXED: github.ref_name returns just 'main'. This condition correctly ensures 
-    # the job ONLY runs if the commit is pushed to a feature branch (NOT main).
+    # the job ONLY runs if the commit is pushed to a feature branch (NOT main)..
     if: github.ref_name != 'main'
     
     # FIXED: Removed the invalid 'runs-on: ubuntu-latest' key. 
