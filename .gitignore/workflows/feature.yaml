@@ -2,7 +2,7 @@ name: feature work flow
 on:
   push:
     # branches-ignore:
-    #   - main # this will ignore this branch
+    #   - main # this will ignore this branch updated
 jobs:
   feature-workflow:
     if: github.ref_name != 'refs/heads/main' # this will run only on main branch
